@@ -22,6 +22,7 @@ function EditEndpoint() {
     fetchEndpointForEdit();
   }, [id, user, navigate]);
 
+  // Fetches the current data for the endpoint so the user can edit it
   const fetchEndpointForEdit = async () => {
     try {
       const response = await fetch(`http://127.0.0.1:5001/api/endpoints/${id}`);
@@ -55,6 +56,7 @@ function EditEndpoint() {
     }
   };
 
+  // Submits the updated data to the backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');

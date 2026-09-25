@@ -21,6 +21,7 @@ function EndpointDetails() {
     fetchEndpointDetails();
   }, [id, user, navigate]);
 
+  // Fetches the specific endpoint data by its ID
   const fetchEndpointDetails = async () => {
     try {
       const response = await fetch(`http://127.0.0.1:5001/api/endpoints/${id}`);
@@ -37,6 +38,7 @@ function EndpointDetails() {
     }
   };
 
+  // Copies the live mock URL to the clipboard
   const copyToClipboard = (url) => {
     navigator.clipboard.writeText(url);
     setCopied(true);
@@ -45,6 +47,7 @@ function EndpointDetails() {
     }, 2000);
   };
 
+  // Deletes this endpoint after a confirmation prompt
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this endpoint?')) {
       return;
@@ -69,11 +72,12 @@ function EndpointDetails() {
   if (error) return <div className="error-message text-center mx-auto mt-2" style={{ maxWidth: '600px' }}>{error}</div>;
   if (!endpoint) return <div className="text-center mt-2">Endpoint not found</div>;
 
+  // Selects the color class based on HTTP status
   const getStatusClass = (code) => {
     if (code >= 200 && code < 300) return 'badge status-200';
     if (code === 404) return 'badge status-404';
     if (code >= 500) return 'badge status-500';
-    return 'badge'; // Default
+    return 'badge'; 
   };
 
   const liveUrl = `http://127.0.0.1:5001/mock/${endpoint.id}`;

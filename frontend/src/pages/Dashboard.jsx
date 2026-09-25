@@ -20,6 +20,7 @@ function Dashboard() {
     fetchEndpoints();
   }, [user, navigate]);
 
+  // Gets the endpoints for the logged-in user from the backend
   const fetchEndpoints = async () => {
     try {
       const response = await fetch(`http://127.0.0.1:5001/api/endpoints?user_id=${user.id}`);
@@ -36,6 +37,7 @@ function Dashboard() {
     }
   };
 
+  // Deletes an endpoint after asking for confirmation
   const handleDelete = async (endpointId) => {
     if (!window.confirm('Are you sure you want to delete this endpoint?')) {
       return;
@@ -47,7 +49,6 @@ function Dashboard() {
       });
 
       if (response.ok) {
-        // Remove from list
         setEndpoints(endpoints.filter(e => e.id !== endpointId));
       } else {
         alert('Failed to delete endpoint');
@@ -57,6 +58,7 @@ function Dashboard() {
     }
   };
 
+  // Copies the live URL to the clipboard and shows a "Copied!" message briefly
   const copyToClipboard = (url, id) => {
     navigator.clipboard.writeText(url);
     setCopiedId(id);
@@ -67,11 +69,12 @@ function Dashboard() {
 
   if (loading) return <div className="text-center mt-2">Loading dashboard...</div>;
 
+  // Helper to pick the right CSS class for the status code badge
   const getStatusClass = (code) => {
     if (code >= 200 && code < 300) return 'badge status-200';
     if (code === 404) return 'badge status-404';
     if (code >= 500) return 'badge status-500';
-    return 'badge'; // Default
+    return 'badge'; 
   };
 
   return (
@@ -83,13 +86,15 @@ function Dashboard() {
 
       {error && <div className="error-message">{error}</div>}
 
-      {endpoints.length === 0 && !error ? (
+      {endpoints.length === 0 && !error && (
         <div className="card text-center" style={{ padding: '50px 20px', backgroundColor: '#fdfdfd' }}>
           <h3>No endpoints yet</h3>
           <p className="mb-2" style={{ color: '#666' }}>Click 'Create New Endpoint' to get started and build your first mock API.</p>
           <Link to="/create" className="btn">Create New Endpoint</Link>
         </div>
-      ) : (
+      )}
+
+      {endpoints.length > 0 && (
         <div>
           {endpoints.map(endpoint => {
             const liveUrl = `http://127.0.0.1:5001/mock/${endpoint.id}`;

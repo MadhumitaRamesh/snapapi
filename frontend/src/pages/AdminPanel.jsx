@@ -21,6 +21,7 @@ function AdminPanel() {
     fetchAdminData();
   }, [user, navigate]);
 
+  // Fetch all users and endpoints for the admin view
   const fetchAdminData = async () => {
     try {
       const response = await fetch('http://127.0.0.1:5001/api/admin/data');
@@ -38,6 +39,7 @@ function AdminPanel() {
     }
   };
 
+  // Delete an endpoint globally
   const handleDeleteEndpoint = async (endpointId) => {
     if (!window.confirm('Are you sure you want to delete this endpoint across the system?')) {
       return;
@@ -58,6 +60,7 @@ function AdminPanel() {
     }
   };
   
+  // Clear the admin session and redirect to admin login
   const handleLogout = () => {
     localStorage.removeItem('user');
     navigate('/admin-login');
@@ -65,11 +68,12 @@ function AdminPanel() {
 
   if (loading) return <div className="text-center mt-2">Loading admin panel...</div>;
 
+  // Pick the appropriate CSS class based on HTTP status code
   const getStatusClass = (code) => {
     if (code >= 200 && code < 300) return 'badge status-200';
     if (code === 404) return 'badge status-404';
     if (code >= 500) return 'badge status-500';
-    return 'badge'; // Default
+    return 'badge';
   };
 
   return (

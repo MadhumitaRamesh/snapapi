@@ -18,6 +18,7 @@ function CreateEndpoint() {
     }
   }, [user, navigate]);
 
+  // Submits the form data to create a new endpoint
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');

@@ -66,7 +66,7 @@ def init_db():
         db.commit()
 
 # --- Auth Routes ---
-
+# Register a new user
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.json
@@ -99,6 +99,7 @@ def register():
     
     return jsonify({"message": "User registered successfully", "id": user_id, "role": role}), 201
 
+# Log in an existing user
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json
@@ -129,90 +130,103 @@ def login():
 
 # --- Endpoint Management Routes ---
 
-@app.route('/api/endpoints', methods=['GET', 'POST'])
-def manage_endpoints():
+# Create a new mock endpoint
+@app.route('/api/endpoints', methods=['POST'])
+def create_endpoint():
     db = get_db()
     cursor = db.cursor()
     
-    if request.method == 'POST':
-        data = request.json
-        user_id = data.get('user_id')
-        title = data.get('title')
-        json_payload = data.get('json_payload')
-        status_code = data.get('status_code', 200)
+    data = request.json
+    user_id = data.get('user_id')
+    title = data.get('title')
+    json_payload = data.get('json_payload')
+    status_code = data.get('status_code', 200)
+    
+    if not user_id or not title or not json_payload:
+        return jsonify({"error": "Missing fields"}), 400
         
-        if not user_id or not title or not json_payload:
-            return jsonify({"error": "Missing fields"}), 400
-            
-        # Basic validation of JSON
-        try:
-            json.loads(json_payload)
-        except json.JSONDecodeError:
-            return jsonify({"error": "Invalid JSON format"}), 400
-            
-        endpoint_id = str(uuid.uuid4())
-        created_at = datetime.now().isoformat()
+    try:
+        json.loads(json_payload)
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON format"}), 400
         
-        cursor.execute('''
-            INSERT INTO mock_endpoints (id, user_id, title, json_payload, status_code, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (endpoint_id, user_id, title, json_payload, status_code, created_at))
-        db.commit()
-        
-        return jsonify({"message": "Endpoint created", "id": endpoint_id}), 201
-        
-    else:
-        # GET request to list endpoints for a user
-        user_id = request.args.get('user_id')
-        if not user_id:
-            return jsonify({"error": "user_id required"}), 400
-            
-        cursor.execute('SELECT * FROM mock_endpoints WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
-        rows = cursor.fetchall()
-        endpoints = [dict(row) for row in rows]
-        return jsonify(endpoints), 200
+    endpoint_id = str(uuid.uuid4())
+    created_at = datetime.now().isoformat()
+    
+    cursor.execute('''
+        INSERT INTO mock_endpoints (id, user_id, title, json_payload, status_code, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (endpoint_id, user_id, title, json_payload, status_code, created_at))
+    db.commit()
+    
+    return jsonify({"message": "Endpoint created", "id": endpoint_id}), 201
 
-@app.route('/api/endpoints/<endpoint_id>', methods=['GET', 'PUT', 'DELETE'])
-def manage_single_endpoint(endpoint_id):
+# Get all endpoints for a specific user
+@app.route('/api/endpoints', methods=['GET'])
+def get_user_endpoints():
     db = get_db()
     cursor = db.cursor()
     
-    if request.method == 'GET':
-        cursor.execute('SELECT * FROM mock_endpoints WHERE id = ?', (endpoint_id,))
-        row = cursor.fetchone()
-        if not row:
-            return jsonify({"error": "Endpoint not found"}), 404
-        return jsonify(dict(row)), 200
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return jsonify({"error": "user_id required"}), 400
         
-    elif request.method == 'PUT':
-        data = request.json
-        title = data.get('title')
-        json_payload = data.get('json_payload')
-        status_code = data.get('status_code', 200)
+    cursor.execute('SELECT * FROM mock_endpoints WHERE user_id = ? ORDER BY created_at DESC', (user_id,))
+    rows = cursor.fetchall()
+    endpoints = [dict(row) for row in rows]
+    return jsonify(endpoints), 200
+
+# Get details of a single endpoint
+@app.route('/api/endpoints/<endpoint_id>', methods=['GET'])
+def get_single_endpoint(endpoint_id):
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('SELECT * FROM mock_endpoints WHERE id = ?', (endpoint_id,))
+    row = cursor.fetchone()
+    if not row:
+        return jsonify({"error": "Endpoint not found"}), 404
+    return jsonify(dict(row)), 200
+
+# Update an existing endpoint
+@app.route('/api/endpoints/<endpoint_id>', methods=['PUT'])
+def update_endpoint(endpoint_id):
+    db = get_db()
+    cursor = db.cursor()
+    
+    data = request.json
+    title = data.get('title')
+    json_payload = data.get('json_payload')
+    status_code = data.get('status_code', 200)
+    
+    if not title or not json_payload:
+        return jsonify({"error": "Missing fields"}), 400
         
-        if not title or not json_payload:
-            return jsonify({"error": "Missing fields"}), 400
-            
-        try:
-            json.loads(json_payload)
-        except json.JSONDecodeError:
-            return jsonify({"error": "Invalid JSON format"}), 400
-            
-        cursor.execute('''
-            UPDATE mock_endpoints 
-            SET title = ?, json_payload = ?, status_code = ? 
-            WHERE id = ?
-        ''', (title, json_payload, status_code, endpoint_id))
-        db.commit()
-        return jsonify({"message": "Endpoint updated"}), 200
+    try:
+        json.loads(json_payload)
+    except json.JSONDecodeError:
+        return jsonify({"error": "Invalid JSON format"}), 400
         
-    elif request.method == 'DELETE':
-        cursor.execute('DELETE FROM mock_endpoints WHERE id = ?', (endpoint_id,))
-        db.commit()
-        return jsonify({"message": "Endpoint deleted"}), 200
+    cursor.execute('''
+        UPDATE mock_endpoints 
+        SET title = ?, json_payload = ?, status_code = ? 
+        WHERE id = ?
+    ''', (title, json_payload, status_code, endpoint_id))
+    db.commit()
+    return jsonify({"message": "Endpoint updated"}), 200
+
+# Delete an endpoint
+@app.route('/api/endpoints/<endpoint_id>', methods=['DELETE'])
+def delete_endpoint(endpoint_id):
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('DELETE FROM mock_endpoints WHERE id = ?', (endpoint_id,))
+    db.commit()
+    return jsonify({"message": "Endpoint deleted"}), 200
 
 # --- Admin Routes ---
-
+# Get all users and endpoints for the admin panel
 @app.route('/api/admin/data', methods=['GET'])
 def admin_data():
     db = get_db()
@@ -227,7 +241,7 @@ def admin_data():
     return jsonify({"users": users, "endpoints": endpoints}), 200
 
 # --- The Mock Serving Route ---
-
+# Serve the custom JSON payload for an endpoint regardless of HTTP method
 @app.route('/mock/<endpoint_id>', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])
 def serve_mock(endpoint_id):
     db = get_db()
