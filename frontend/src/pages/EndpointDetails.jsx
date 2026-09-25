@@ -81,12 +81,7 @@ function EndpointDetails() {
   };
 
   const liveUrl = `http://127.0.0.1:5001/mock/${endpoint.id}`;
-  let formattedJson = endpoint.json_payload;
-  try {
-    formattedJson = JSON.stringify(JSON.parse(endpoint.json_payload), null, 2);
-  } catch (e) {
-    // If somehow not valid JSON, leave as is
-  }
+  const formattedJson = endpoint.json_payload;
 
   const isOwner = user.role === 'admin' || user.id === endpoint.user_id;
 

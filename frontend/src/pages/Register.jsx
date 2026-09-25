@@ -8,27 +8,28 @@ function Register() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  // Handles the form submission to register a user
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
 
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('email', email);
+    formData.append('password', password);
+
     try {
       const response = await fetch('http://127.0.0.1:5001/api/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name, email, password })
+        body: formData
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error || 'Registration failed');
+        const errorText = await response.text();
+        setError(errorText || 'Registration failed');
         return;
       }
 
-      // Registration success, go to login
       navigate('/login');
     } catch (err) {
       setError('Could not connect to server');

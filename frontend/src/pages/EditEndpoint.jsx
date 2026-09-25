@@ -36,15 +36,7 @@ function EditEndpoint() {
         }
 
         setTitle(data.title);
-        
-        // Format JSON payload nicely for editing
-        try {
-          const parsed = JSON.parse(data.json_payload);
-          setJsonPayload(JSON.stringify(parsed, null, 2));
-        } catch (e) {
-          setJsonPayload(data.json_payload);
-        }
-        
+        setJsonPayload(data.json_payload);
         setStatusCode(data.status_code);
       } else {
         setError('Failed to fetch endpoint details');
@@ -61,31 +53,20 @@ function EditEndpoint() {
     e.preventDefault();
     setError('');
 
-    // Check if JSON is valid
-    try {
-      JSON.parse(jsonPayload);
-    } catch (err) {
-      setError('Invalid JSON payload format');
-      return;
-    }
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('json_payload', jsonPayload);
+    formData.append('status_code', statusCode);
 
     try {
       const response = await fetch(`http://127.0.0.1:5001/api/endpoints/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          title,
-          json_payload: jsonPayload,
-          status_code: parseInt(statusCode)
-        })
+        body: formData
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error || 'Failed to update endpoint');
+        const errorText = await response.text();
+        setError(errorText || 'Failed to update endpoint');
         return;
       }
 

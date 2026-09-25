@@ -24,34 +24,25 @@ function CreateEndpoint() {
     setError('');
     setCreatedUrl('');
 
-    // Check if JSON is valid
-    try {
-      JSON.parse(jsonPayload);
-    } catch (err) {
-      setError('Invalid JSON payload format');
-      return;
-    }
+    const formData = new FormData();
+    formData.append('user_id', user.id);
+    formData.append('title', title);
+    formData.append('json_payload', jsonPayload);
+    formData.append('status_code', statusCode);
 
     try {
       const response = await fetch('http://127.0.0.1:5001/api/endpoints', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          title,
-          json_payload: jsonPayload,
-          status_code: parseInt(statusCode)
-        })
+        body: formData
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setError(data.error || 'Failed to create endpoint');
+        const errorText = await response.text();
+        setError(errorText || 'Failed to create endpoint');
         return;
       }
+      
+      const data = await response.json();
 
       setCreatedUrl(`http://127.0.0.1:5001/mock/${data.id}`);
       setTitle('');
