@@ -1,11 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import banner from '../assets/banner.svg';
 
 function Landing() {
   return (
     <div className="text-center mt-2">
       <h1>Welcome to SnapAPI</h1>
       <p className="mb-2">A lightweight micro-API mocking engine for developers.</p>
+      
+      <img 
+        src={banner} 
+        alt="SnapAPI banner" 
+        className="banner-image" 
+        style={{ maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto 30px auto' }} 
+      />
       
       <div className="card" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'left' }}>
         <h2>Stop waiting for the backend</h2>

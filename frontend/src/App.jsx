@@ -8,9 +8,10 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CreateEndpoint from './pages/CreateEndpoint';
 import AdminPanel from './pages/AdminPanel';
-
 import EndpointDetails from './pages/EndpointDetails';
 import EditEndpoint from './pages/EditEndpoint';
+import Profile from './pages/Profile';
+import Docs from './pages/Docs';
 
 function App() {
   return (
@@ -27,6 +28,8 @@ function App() {
           <Route path="/endpoint/:id" element={<EndpointDetails />} />
           <Route path="/edit/:id" element={<EditEndpoint />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/docs" element={<Docs />} />
         </Routes>
       </div>
     </BrowserRouter>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import logo from '../assets/logo.svg';
 
 function Navbar() {
   const navigate = useNavigate();
@@ -24,15 +25,22 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-      <Link to="/" className="navbar-brand">SnapAPI</Link>
+      <Link to="/" className="navbar-brand" style={{ display: 'flex', alignItems: 'center' }}>
+        <img src={logo} alt="SnapAPI logo" className="logo" style={{ height: '28px', marginRight: '10px' }} />
+        SnapAPI
+      </Link>
       <div className="navbar-links">
+        <Link to="/docs" className={getLinkClass('/docs')}>Docs</Link>
+        
         {user ? (
           <>
-            <span>Hi, {user.name}</span>
             {user.role === 'admin' ? (
               <Link to="/admin" className={getLinkClass('/admin')}>Admin Panel</Link>
             ) : (
-              <Link to="/dashboard" className={getLinkClass('/dashboard')}>Dashboard</Link>
+              <>
+                <Link to="/dashboard" className={getLinkClass('/dashboard')}>Dashboard</Link>
+                <Link to="/profile" className={getLinkClass('/profile')}>Profile</Link>
+              </>
             )}
             <button onClick={handleLogout} className="btn btn-secondary btn-small">Logout</button>
           </>

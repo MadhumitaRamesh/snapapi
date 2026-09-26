@@ -34,7 +34,8 @@ def init_db():
                 name TEXT NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
-                role TEXT NOT NULL DEFAULT 'user'
+                role TEXT NOT NULL DEFAULT 'user',
+                created_at TEXT
             )
         ''')
         
@@ -55,10 +56,11 @@ def init_db():
         if not cursor.fetchone():
             admin_id = str(uuid.uuid4())
             admin_password = generate_password_hash('admin123', method='pbkdf2:sha256')
+            created_at = datetime.now().isoformat()
             cursor.execute('''
-                INSERT INTO users (id, name, email, password_hash, role)
-                VALUES (?, ?, ?, ?, ?)
-            ''', (admin_id, 'System Admin', 'admin@snapapi.com', admin_password, 'admin'))
+                INSERT INTO users (id, name, email, password_hash, role, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (admin_id, 'System Admin', 'admin@snapapi.com', admin_password, 'admin', created_at))
         
         db.commit()
 
@@ -83,15 +85,16 @@ def register():
     user_id = str(uuid.uuid4())
     password_hash = generate_password_hash(password, method='pbkdf2:sha256')
     role = 'admin' if email == 'admin@snapapi.com' else 'user'
+    created_at = datetime.now().isoformat()
     
     cursor.execute('''
-        INSERT INTO users (id, name, email, password_hash, role)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (user_id, name, email, password_hash, role))
+        INSERT INTO users (id, name, email, password_hash, role, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (user_id, name, email, password_hash, role, created_at))
     db.commit()
     
     # Returning a dict is automatically converted to JSON by Flask
-    return {"message": "User registered successfully", "id": user_id, "role": role}, 201
+    return {"message": "User registered successfully", "id": user_id, "role": role, "name": name, "email": email, "created_at": created_at}, 201
 
 # Log in an existing user
 @app.route('/api/login', methods=['POST'])
@@ -105,7 +108,7 @@ def login():
     db = get_db()
     cursor = db.cursor()
     
-    cursor.execute('SELECT id, name, email, password_hash, role FROM users WHERE email = ?', (email,))
+    cursor.execute('SELECT id, name, email, password_hash, role, created_at FROM users WHERE email = ?', (email,))
     user = cursor.fetchone()
     
     if user and check_password_hash(user['password_hash'], password):
@@ -115,11 +118,42 @@ def login():
                 "id": user['id'],
                 "name": user['name'],
                 "email": user['email'],
-                "role": user['role']
+                "role": user['role'],
+                "created_at": user['created_at']
             }
         }, 200
         
     return 'Invalid email or password', 401
+
+# --- Profile Routes ---
+# Get stats for a user's profile
+@app.route('/api/profile-stats', methods=['GET'])
+def profile_stats():
+    user_id = request.args.get('user_id')
+    if not user_id:
+        return 'user_id required', 400
+        
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT COUNT(*) as count FROM mock_endpoints WHERE user_id = ?', (user_id,))
+    row = cursor.fetchone()
+    return {"count": row['count']}, 200
+
+# Update a user's profile (name only)
+@app.route('/api/update-profile', methods=['POST'])
+def update_profile():
+    user_id = request.form.get('user_id')
+    name = request.form.get('name')
+    
+    if not user_id or not name:
+        return 'Missing fields', 400
+        
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('UPDATE users SET name = ? WHERE id = ?', (name, user_id))
+    db.commit()
+    
+    return {"message": "Profile updated successfully"}, 200
 
 # --- Endpoint Management Routes ---
 # Create a new mock endpoint
