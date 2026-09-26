@@ -85,6 +85,38 @@ function AdminPanel() {
     }
   };
   
+  // Delete a user account and all their endpoints
+  const handleDeleteUser = async (targetUserId) => {
+    if (targetUserId === user.id) {
+      alert("You cannot delete your own admin account from here. Use the Profile page.");
+      return;
+    }
+    
+    if (!window.confirm('Are you sure you want to completely remove this user and all their endpoints?')) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('user_id', targetUserId);
+
+    try {
+      const response = await fetch('http://127.0.0.1:5001/api/delete-account', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        setUsers(users.filter(u => u.id !== targetUserId));
+        // Also remove endpoints belonging to this user
+        setEndpoints(endpoints.filter(e => e.user_id !== targetUserId));
+      } else {
+        alert('Failed to delete user');
+      }
+    } catch (err) {
+      alert('Error deleting user');
+    }
+  };
+
   // Clear the admin session and redirect to admin login
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -119,20 +151,31 @@ function AdminPanel() {
               <th>Name</th>
               <th>Email</th>
               <th>Role</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {users.map(u => (
               <tr key={u.id}>
-                <td>{u.id.substring(0, 8)}...</td>
+                <td>{u.id}</td>
                 <td>{u.name}</td>
                 <td>{u.email}</td>
                 <td>{u.role}</td>
+                <td>
+                  {u.id !== user.id && (
+                    <button 
+                      onClick={() => handleDeleteUser(u.id)} 
+                      className="btn btn-danger btn-small"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </td>
               </tr>
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan="4" className="text-center">No users found</td>
+                <td colSpan="5" className="text-center">No users found</td>
               </tr>
             )}
           </tbody>
