@@ -24,6 +24,12 @@ function Tester() {
     if (e) e.preventDefault();
     if (!url.trim()) return;
 
+    let targetUrl = url.trim();
+    if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+      targetUrl = 'http://' + targetUrl;
+      setUrl(targetUrl); // update the input box to show the fixed URL
+    }
+
     setIsLoading(true);
     setError('');
     setStatusCode(null);
@@ -33,7 +39,9 @@ function Tester() {
     const startTime = Date.now();
 
     try {
-      const response = await fetch(url);
+      const response = await fetch(targetUrl, {
+        cache: 'no-store', // Always fetch fresh, never use browser cache
+      });
       const endTime = Date.now();
       
       const rawText = await response.text();
