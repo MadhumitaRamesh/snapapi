@@ -163,6 +163,76 @@ def update_profile():
     
     return {"message": "Profile updated successfully"}, 200
 
+# Change a user's password
+@app.route('/api/change-password', methods=['POST'])
+def change_password():
+    user_id = request.form.get('user_id')
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+    confirm_password = request.form.get('confirm_password')
+
+    if not user_id or not current_password or not new_password or not confirm_password:
+        return 'Missing fields', 400
+
+    if new_password != confirm_password:
+        return 'New passwords do not match', 400
+
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('SELECT password_hash FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    
+    if not user or not check_password_hash(user['password_hash'], current_password):
+        return 'Current password is incorrect', 400
+
+    new_hash = generate_password_hash(new_password, method='pbkdf2:sha256')
+    cursor.execute('UPDATE users SET password_hash = ? WHERE id = ?', (new_hash, user_id))
+    db.commit()
+
+    return 'Password updated successfully', 200
+
+# Export endpoints as a plain text file
+@app.route('/api/export-endpoints/<user_id>', methods=['GET'])
+def export_endpoints(user_id):
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('SELECT title, status_code, id, created_at FROM mock_endpoints WHERE user_id = ?', (user_id,))
+    endpoints = cursor.fetchall()
+
+    text = "SnapAPI - My Endpoints\n"
+    text += "------------------------\n\n"
+
+    for ep in endpoints:
+        text += f"Title: {ep['title']}\n"
+        text += f"Status Code: {ep['status_code']}\n"
+        text += f"URL: http://127.0.0.1:5001/mock/{ep['id']}\n"
+        text += f"Created: {ep['created_at']}\n\n"
+
+    from flask import Response
+    return Response(
+        text, 
+        mimetype="text/plain", 
+        headers={"Content-Disposition": "attachment; filename=my-endpoints.txt"}
+    )
+
+# Delete a user account completely
+@app.route('/api/delete-account', methods=['POST'])
+def delete_account():
+    user_id = request.form.get('user_id')
+    if not user_id:
+        return 'Missing fields', 400
+
+    db = get_db()
+    cursor = db.cursor()
+    
+    cursor.execute('DELETE FROM mock_endpoints WHERE user_id = ?', (user_id,))
+    cursor.execute('DELETE FROM users WHERE id = ?', (user_id,))
+    db.commit()
+    
+    return 'Account deleted successfully', 200
+
 # --- Endpoint Management Routes ---
 # Create a new mock endpoint
 @app.route('/api/endpoints', methods=['POST'])
