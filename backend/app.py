@@ -136,8 +136,16 @@ def profile_stats():
     db = get_db()
     cursor = db.cursor()
     cursor.execute('SELECT COUNT(*) as count FROM mock_endpoints WHERE user_id = ?', (user_id,))
-    row = cursor.fetchone()
-    return {"count": row['count']}, 200
+    count_row = cursor.fetchone()
+    
+    cursor.execute('SELECT created_at, role, name, email FROM users WHERE id = ?', (user_id,))
+    user_row = cursor.fetchone()
+    
+    return {
+        "count": count_row['count'],
+        "created_at": user_row['created_at'] if user_row else None,
+        "role": user_row['role'] if user_row else 'user'
+    }, 200
 
 # Update a user's profile (name only)
 @app.route('/api/update-profile', methods=['POST'])

@@ -102,8 +102,15 @@ function EndpointDetails() {
         <button 
           onClick={() => copyToClipboard(liveUrl)} 
           className="btn btn-outline btn-small"
+          style={{ marginRight: '10px' }}
         >
           {copied ? 'Copied!' : 'Copy URL'}
+        </button>
+        <button 
+          onClick={() => navigate(`/tester?url=${encodeURIComponent(liveUrl)}`)} 
+          className="btn btn-secondary btn-small"
+        >
+          Test This Endpoint
         </button>
       </div>
 

@@ -8,6 +8,8 @@ function Profile() {
   const [editName, setEditName] = useState('');
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
+  const [freshCreatedAt, setFreshCreatedAt] = useState(null);
+  const [role, setRole] = useState('user');
 
   // Load user and stats when the page loads
   useEffect(() => {
@@ -20,13 +22,23 @@ function Profile() {
     const loggedInUser = JSON.parse(userString);
     setUser(loggedInUser);
     setEditName(loggedInUser.name);
+    setFreshCreatedAt(loggedInUser.created_at);
 
-    // Fetch the count of mock endpoints from our new API route
+    // Fetch the count of mock endpoints and fresh user data
     fetch(`http://127.0.0.1:5001/api/profile-stats?user_id=${loggedInUser.id}`)
       .then(res => res.json())
       .then(data => {
         if (data.count !== undefined) {
           setEndpointCount(data.count);
+        }
+        if (data.created_at) {
+          setFreshCreatedAt(data.created_at);
+          // Update cache silently
+          loggedInUser.created_at = data.created_at;
+          localStorage.setItem('user', JSON.stringify(loggedInUser));
+        }
+        if (data.role) {
+          setRole(data.role);
         }
       })
       .catch(err => {
@@ -81,13 +93,34 @@ function Profile() {
 
   return (
     <div className="card" style={{ maxWidth: '600px', margin: '0 auto' }}>
-      <h2>Your Profile</h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '20px' }}>
+        <div style={{
+          width: '80px', 
+          height: '80px', 
+          borderRadius: '50%', 
+          backgroundColor: '#4a6cf7', 
+          color: 'white', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          fontSize: '2rem',
+          fontWeight: 'bold'
+        }}>
+          {user.name.charAt(0).toUpperCase()}
+        </div>
+        <div>
+          <h2 style={{ margin: '0 0 5px 0' }}>{user.name}</h2>
+          <span className={`badge ${role === 'admin' ? 'status-500' : 'status-200'}`} style={{ fontSize: '0.8rem' }}>
+            {role.toUpperCase()}
+          </span>
+        </div>
+      </div>
 
-      <div style={{ marginBottom: '20px', marginTop: '20px' }}>
+      <div style={{ marginBottom: '20px' }}>
         <p><strong>Email:</strong> {user.email}</p>
         <p>
           <strong>Registered on:</strong>{' '}
-          {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+          {freshCreatedAt ? new Date(freshCreatedAt).toLocaleDateString() : 'N/A'}
         </p>
       </div>
 
@@ -98,7 +131,7 @@ function Profile() {
 
       <hr style={{ border: 'none', borderTop: '1px solid #ddd', margin: '30px 0' }} />
 
-      <h3>Edit Name</h3>
+      <h3>Edit Profile</h3>
       {error && <div className="error-message">{error}</div>}
       
       <form onSubmit={handleSaveName}>

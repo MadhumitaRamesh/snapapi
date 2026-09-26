@@ -12,6 +12,7 @@ import EndpointDetails from './pages/EndpointDetails';
 import EditEndpoint from './pages/EditEndpoint';
 import Profile from './pages/Profile';
 import Docs from './pages/Docs';
+import Tester from './pages/Tester';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/docs" element={<Docs />} />
+          <Route path="/tester" element={<Tester />} />
         </Routes>
       </div>
     </BrowserRouter>
