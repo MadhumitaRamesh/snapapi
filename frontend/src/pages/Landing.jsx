@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import banner from '../assets/banner.svg';
 
 function Landing() {
   return (
@@ -8,7 +9,7 @@ function Landing() {
       <p style={{ margin: '0 0 15px 0', color: '#555' }}>A lightweight micro-API mocking engine for developers.</p>
       
       <img 
-        src="/banner.svg" 
+        src={banner} 
         alt="SnapAPI banner" 
         className="banner-image" 
         style={{ maxWidth: '100%', maxHeight: '20vh', display: 'block', margin: '0 auto 20px auto' }} 

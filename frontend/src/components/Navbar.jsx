@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import logo from '../assets/logo.svg';
 
 function Navbar() {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-brand" style={{ display: 'flex', alignItems: 'center' }}>
-        <img src="/logo.svg" alt="SnapAPI logo" className="logo" style={{ height: '28px', marginRight: '10px' }} />
+        <img src={logo} alt="SnapAPI logo" className="logo" style={{ height: '28px', marginRight: '10px' }} />
         SnapAPI
       </Link>
       <div className="navbar-links" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
