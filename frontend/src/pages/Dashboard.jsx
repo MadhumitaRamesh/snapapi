@@ -9,7 +9,17 @@ function Dashboard() {
   const [copiedId, setCopiedId] = useState(null);
 
   const userString = localStorage.getItem('user');
-  const user = userString ? JSON.parse(userString) : null;
+  let user = null;
+  if (userString) {
+    const parts = userString.split("::");
+    user = {
+      id: parts[0],
+      name: parts[1],
+      email: parts[2],
+      role: parts[3],
+      created_at: parts[4]
+    };
+  }
 
   useEffect(() => {
     if (!user) {
@@ -18,15 +28,29 @@ function Dashboard() {
     }
 
     fetchEndpoints();
-  }, [user, navigate]);
+  }, [navigate]);
 
   // Gets the endpoints for the logged-in user from the backend
   const fetchEndpoints = async () => {
     try {
       const response = await fetch(`http://127.0.0.1:5001/api/endpoints?user_id=${user.id}`);
       if (response.ok) {
-        const data = await response.json();
-        setEndpoints(data);
+        const text = await response.text();
+        if (!text.trim()) {
+            setEndpoints([]);
+        } else {
+            const lines = text.trim().split("\n");
+            const parsedEndpoints = lines.map(line => {
+              const parts = line.split("::");
+              return { 
+                id: parts[0], 
+                title: parts[1], 
+                status_code: parts[2], 
+                created_at: parts[3] 
+              };
+            });
+            setEndpoints(parsedEndpoints);
+        }
       } else {
         setError('Failed to fetch endpoints');
       }

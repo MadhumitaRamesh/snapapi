@@ -5,13 +5,23 @@ function EditEndpoint() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
-  const [jsonPayload, setJsonPayload] = useState('');
+  const [responseText, setResponseText] = useState('');
   const [statusCode, setStatusCode] = useState(200);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   const userString = localStorage.getItem('user');
-  const user = userString ? JSON.parse(userString) : null;
+  let user = null;
+  if (userString) {
+    const parts = userString.split("::");
+    user = {
+      id: parts[0],
+      name: parts[1],
+      email: parts[2],
+      role: parts[3],
+      created_at: parts[4]
+    };
+  }
 
   useEffect(() => {
     if (!user) {
@@ -27,7 +37,16 @@ function EditEndpoint() {
     try {
       const response = await fetch(`http://127.0.0.1:5001/api/endpoints/${id}`);
       if (response.ok) {
-        const data = await response.json();
+        const text = await response.text();
+        const parts = text.split("::");
+        const data = {
+            id: parts[0],
+            user_id: parts[1],
+            title: parts[2],
+            response_text: parts[3],
+            status_code: parts[4],
+            created_at: parts[5]
+        };
         
         // Check ownership
         if (user.role !== 'admin' && data.user_id !== user.id) {
@@ -36,7 +55,7 @@ function EditEndpoint() {
         }
 
         setTitle(data.title);
-        setJsonPayload(data.json_payload);
+        setResponseText(data.response_text);
         setStatusCode(data.status_code);
       } else {
         setError('Failed to fetch endpoint details');
@@ -55,7 +74,7 @@ function EditEndpoint() {
 
     const formData = new FormData();
     formData.append('title', title);
-    formData.append('json_payload', jsonPayload);
+    formData.append('response_text', responseText);
     formData.append('status_code', statusCode);
 
     try {
@@ -117,11 +136,11 @@ function EditEndpoint() {
         </div>
         
         <div className="form-group">
-          <label>JSON Payload (Response Body)</label>
+          <label>Response Text (Response Body)</label>
           <textarea 
             rows="10" 
-            value={jsonPayload} 
-            onChange={(e) => setJsonPayload(e.target.value)} 
+            value={responseText} 
+            onChange={(e) => setResponseText(e.target.value)} 
             style={{ fontFamily: 'monospace' }}
             required
           ></textarea>

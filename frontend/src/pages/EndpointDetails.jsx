@@ -10,7 +10,17 @@ function EndpointDetails() {
   const [copied, setCopied] = useState(false);
 
   const userString = localStorage.getItem('user');
-  const user = userString ? JSON.parse(userString) : null;
+  let user = null;
+  if (userString) {
+    const parts = userString.split("::");
+    user = {
+      id: parts[0],
+      name: parts[1],
+      email: parts[2],
+      role: parts[3],
+      created_at: parts[4]
+    };
+  }
 
   useEffect(() => {
     if (!user) {
@@ -26,7 +36,16 @@ function EndpointDetails() {
     try {
       const response = await fetch(`http://127.0.0.1:5001/api/endpoints/${id}`);
       if (response.ok) {
-        const data = await response.json();
+        const text = await response.text();
+        const parts = text.split("::");
+        const data = {
+            id: parts[0],
+            user_id: parts[1],
+            title: parts[2],
+            response_text: parts[3],
+            status_code: parts[4],
+            created_at: parts[5]
+        };
         setEndpoint(data);
       } else {
         setError('Failed to fetch endpoint details');
@@ -81,7 +100,7 @@ function EndpointDetails() {
   };
 
   const liveUrl = `http://127.0.0.1:5001/mock/${endpoint.id}`;
-  const formattedJson = endpoint.json_payload;
+  const formattedResponse = endpoint.response_text;
 
   const isOwner = user.role === 'admin' || user.id === endpoint.user_id;
 
@@ -119,7 +138,7 @@ function EndpointDetails() {
       </div>
 
       <div style={{ marginBottom: '20px' }}>
-        <strong>JSON Payload:</strong>
+        <strong>Response Text:</strong>
         <pre style={{ 
           backgroundColor: '#f4f4f4', 
           padding: '15px', 
@@ -128,7 +147,7 @@ function EndpointDetails() {
           marginTop: '10px',
           border: '1px solid #ddd'
         }}>
-          {formattedJson}
+          {formattedResponse}
         </pre>
       </div>
 

@@ -18,7 +18,7 @@ function Landing() {
       <div className="card" style={{ maxWidth: '600px', width: '100%', margin: '0', textAlign: 'left', padding: '20px' }}>
         <h2 style={{ margin: '0 0 10px 0' }}>Stop waiting for the backend</h2>
         <p style={{ margin: '0 0 20px 0' }}>
-          SnapAPI lets you build the frontend instantly. Create mock endpoints with custom JSON payloads 
+          SnapAPI lets you build the frontend instantly. Create mock endpoints with custom text responses 
           and status codes. It's like having the backend ready before it's even written.
         </p>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px' }}>

@@ -4,13 +4,23 @@ import { useNavigate, Link } from 'react-router-dom';
 function CreateEndpoint() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
-  const [jsonPayload, setJsonPayload] = useState('{\n  "message": "Hello World"\n}');
+  const [responseText, setResponseText] = useState("Hello World");
   const [statusCode, setStatusCode] = useState(200);
   const [error, setError] = useState('');
   const [createdUrl, setCreatedUrl] = useState('');
 
   const userString = localStorage.getItem('user');
-  const user = userString ? JSON.parse(userString) : null;
+  let user = null;
+  if (userString) {
+    const parts = userString.split("::");
+    user = {
+      id: parts[0],
+      name: parts[1],
+      email: parts[2],
+      role: parts[3],
+      created_at: parts[4]
+    };
+  }
 
   useEffect(() => {
     if (!user) {
@@ -27,7 +37,7 @@ function CreateEndpoint() {
     const formData = new FormData();
     formData.append('user_id', user.id);
     formData.append('title', title);
-    formData.append('json_payload', jsonPayload);
+    formData.append('response_text', responseText);
     formData.append('status_code', statusCode);
 
     try {
@@ -42,11 +52,11 @@ function CreateEndpoint() {
         return;
       }
       
-      const data = await response.json();
+      const data = await response.text();
 
       setCreatedUrl(`http://127.0.0.1:5001/mock/${data.id}`);
       setTitle('');
-      setJsonPayload('{\n  "message": "Hello World"\n}');
+      setResponseText("Hello World");
       setStatusCode(200);
     } catch (err) {
       setError('Could not connect to server');
@@ -98,11 +108,11 @@ function CreateEndpoint() {
         </div>
         
         <div className="form-group">
-          <label>JSON Payload (Response Body)</label>
+          <label>Response Text (Response Body)</label>
           <textarea 
             rows="10" 
-            value={jsonPayload} 
-            onChange={(e) => setJsonPayload(e.target.value)} 
+            value={responseText} 
+            onChange={(e) => setResponseText(e.target.value)} 
             style={{ fontFamily: 'monospace' }}
             required
           ></textarea>

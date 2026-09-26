@@ -29,15 +29,25 @@ function Profile() {
       return;
     }
 
-    const loggedInUser = JSON.parse(userString);
+        let loggedInUser = null;
+    const parts = userString.split("::");
+    loggedInUser = {
+      id: parts[0],
+      name: parts[1],
+      email: parts[2],
+      role: parts[3],
+      created_at: parts[4]
+    };
     setUser(loggedInUser);
     setEditName(loggedInUser.name);
     setFreshCreatedAt(loggedInUser.created_at);
 
     // Fetch the count of mock endpoints and fresh user data
     fetch(`http://127.0.0.1:5001/api/profile-stats?user_id=${loggedInUser.id}`)
-      .then(res => res.json())
-      .then(data => {
+      .then(res => res.text())
+      .then(text => {
+        const dataParts = text.split('::');
+        const data = { count: dataParts[0], created_at: dataParts[1], role: dataParts[2] };
         if (data.count !== undefined) {
           setEndpointCount(data.count);
         }
@@ -45,7 +55,7 @@ function Profile() {
           setFreshCreatedAt(data.created_at);
           // Update cache silently
           loggedInUser.created_at = data.created_at;
-          localStorage.setItem('user', JSON.stringify(loggedInUser));
+          localStorage.setItem('user', `${loggedInUser.id}::${loggedInUser.name}::${loggedInUser.email}::${loggedInUser.role}::${loggedInUser.created_at}`);
         }
         if (data.role) {
           setRole(data.role);
@@ -85,7 +95,7 @@ function Profile() {
 
       // Update local storage so the new name shows everywhere
       const updatedUser = { ...user, name: editName };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      localStorage.setItem('user', `${updatedUser.id}::${updatedUser.name}::${updatedUser.email}::${updatedUser.role}::${updatedUser.created_at}`);
       setUser(updatedUser);
 
       // Show "Saved!" briefly

@@ -1,6 +1,5 @@
 import urllib.request
 import urllib.parse
-import json
 import time
 
 BASE_URL = "http://127.0.0.1:5001/api"
@@ -20,7 +19,7 @@ print("1. Register a new test user")
 status, text = req(f"{BASE_URL}/register", {"name": "Test User", "email": "testuser@example.com", "password": "password123"}, 'POST')
 if status == 201:
     print("PASS 1")
-    user_id = json.loads(text)["id"]
+    user_id = text.split("::")[0]
 else:
     print("FAIL 1", text)
 
@@ -39,10 +38,10 @@ else:
     print("FAIL 3", text)
 
 print("4. From Dashboard, create a new mock endpoint")
-status, text = req(f"{BASE_URL}/endpoints", {"user_id": user_id, "title": "Test Endpoint", "json_payload": '{"hello": "world"}', "status_code": 200}, 'POST')
+status, text = req(f"{BASE_URL}/endpoints", {"user_id": user_id, "title": "Test Endpoint", "response_text": 'hello world', "status_code": 200}, 'POST')
 if status == 201:
     print("PASS 4")
-    endpoint_id = json.loads(text)["id"]
+    endpoint_id = text.strip()
 else:
     print("FAIL 4", text)
 
@@ -54,16 +53,15 @@ else:
     print("FAIL 5", text)
 
 print("6. Edit endpoint")
-status, text = req(f"{BASE_URL}/endpoints/{endpoint_id}", {"title": "Updated Endpoint", "json_payload": '{"hello": "world"}', "status_code": 200}, 'PUT')
+status, text = req(f"{BASE_URL}/endpoints/{endpoint_id}", {"title": "Updated Endpoint", "response_text": 'hello world update', "status_code": 200}, 'PUT')
 if status == 200:
     print("PASS 6")
 else:
     print("FAIL 6", text)
 
 print("7. Tester fetch (raw mock URL)")
-start = time.time()
 status, text = req(f"{MOCK_URL}/{endpoint_id}")
-if status == 200 and text == '{"hello": "world"}':
+if status == 200 and text == 'hello world update':
     print("PASS 7")
 else:
     print("FAIL 7", text)
@@ -103,8 +101,12 @@ if status == 200:
 else:
     print("FAIL 12", text)
 
-print("13. Admin panel (Client side, assumed pass)")
-print("PASS 13")
+print("13. Admin panel fetch")
+status, text = req(f"{BASE_URL}/admin/data")
+if status == 200 and "USERS" in text:
+    print("PASS 13")
+else:
+    print("FAIL 13", text)
 
 print("14. Admin deletes test user endpoint (Skipped since we just deleted it in step 12)")
 print("PASS 14")

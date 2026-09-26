@@ -7,7 +7,17 @@ function Navbar() {
   const location = useLocation();
   
   const userString = localStorage.getItem('user');
-  const user = userString ? JSON.parse(userString) : null;
+  let user = null;
+  if (userString) {
+    const parts = userString.split("::");
+    user = {
+      id: parts[0],
+      name: parts[1],
+      email: parts[2],
+      role: parts[3],
+      created_at: parts[4]
+    };
+  }
 
   const handleLogout = () => {
     const wasAdmin = user && user.role === 'admin';

@@ -9,7 +9,17 @@ function AdminPanel() {
   const [error, setError] = useState('');
 
   const userString = localStorage.getItem('user');
-  const user = userString ? JSON.parse(userString) : null;
+  let user = null;
+  if (userString) {
+    const parts = userString.split("::");
+    user = {
+      id: parts[0],
+      name: parts[1],
+      email: parts[2],
+      role: parts[3],
+      created_at: parts[4]
+    };
+  }
 
   useEffect(() => {
     // Check if user is admin
@@ -26,7 +36,22 @@ function AdminPanel() {
     try {
       const response = await fetch('http://127.0.0.1:5001/api/admin/data');
       if (response.ok) {
-        const data = await response.json();
+        const text = await response.text();
+        const sections = text.split("ENDPOINTS\n");
+        const userSection = sections[0].replace("USERS\n", "").trim();
+        const endpointSection = sections[1] ? sections[1].trim() : "";
+        
+        const parsedUsers = userSection ? userSection.split("\n").map(line => {
+            const parts = line.split("::");
+            return { id: parts[0], name: parts[1], email: parts[2], role: parts[3] };
+        }) : [];
+
+        const parsedEndpoints = endpointSection ? endpointSection.split("\n").map(line => {
+            const parts = line.split("::");
+            return { id: parts[0], user_id: parts[1], title: parts[2], status_code: parts[3] };
+        }) : [];
+        
+        const data = { users: parsedUsers, endpoints: parsedEndpoints };
         setUsers(data.users);
         setEndpoints(data.endpoints);
       } else {

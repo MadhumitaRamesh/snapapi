@@ -16,7 +16,7 @@ function Docs() {
   const curlExample = 'curl http://127.0.0.1:5001/mock/your-id-here';
   
   const fetchExample = `fetch('http://127.0.0.1:5001/mock/your-id-here')
-  .then(response => response.json())
+  .then(response => response.text())
   .then(data => console.log(data));`;
 
   return (

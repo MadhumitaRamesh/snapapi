@@ -28,15 +28,17 @@ function AdminLogin() {
         return;
       }
 
-      const data = await response.json();
+      const text = await response.text();
+      const parts = text.split("::");
+      const role = parts[3];
 
-      if (data.user.role !== 'admin') {
+      if (role !== 'admin') {
         setError('This account is not an admin');
         return;
       }
 
       // Save user info to local storage
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('user', text);
       navigate('/admin');
       
     } catch (err) {
